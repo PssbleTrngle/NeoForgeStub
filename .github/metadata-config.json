@@ -5,8 +5,5 @@
   "issueTemplates": false,
   "configs": false,
   "loaders": ["none"],
-  "upload": {
-    "strategy": "push",
-    "nexus": true
-  }
+  "upload": { "strategy": "push", "nexus": true }
 }
