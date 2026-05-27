@@ -1,0 +1,56 @@
+# <meta>
+#    <source>@pssbletrngle/github-meta-generator</source>
+#    <version>1.0.78</version>
+#    <timestamp>2026-05-27T20:32:47.983Z</timestamp>
+#    <hash>f4296fdc1e4e7892</hash>
+# </meta>
+
+name: Release
+on:
+  push:
+    branches:
+      - "main"
+      - "main/**"
+
+env:
+  CI: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: 26
+          distribution: temurin
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name != 'push' }}
+
+      - name: Build and upload
+        run: ./gradlew build upload
+        env:
+          CHANGELOG: automated patch release
+          PATCH_VERSION: ${{ github.run_number }}
+          NEXUS_USER: ${{ secrets.NEXUS_USER }}
+          NEXUS_TOKEN: ${{ secrets.NEXUS_TOKEN }}
+
+      - name: Publish Release Metadata
+        uses: actions/upload-artifact@v7
+        with:
+          archive: false
+          path: build/release.json
+          retention-days: 1
